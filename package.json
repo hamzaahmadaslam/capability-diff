@@ -1,0 +1,46 @@
+{
+  "name": "capability-diff",
+  "version": "1.0.0",
+  "description": "Compares who can run each operation of a WordPress plugin or theme (AJAX and admin-post actions, REST routes, admin pages) in two versions, and reports the changes that let more users in: a removed or lowered capability check, a dropped object ID, a check moved after the write, a route made public, a removed nonce.",
+  "type": "module",
+  "bin": {
+    "capability-diff": "bin/capability-diff.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "action.yml"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "wordpress",
+    "security",
+    "authorization",
+    "capabilities",
+    "current_user_can",
+    "rest-api",
+    "ajax",
+    "github-action",
+    "cli",
+    "typesafe",
+    "jev"
+  ],
+  "author": "Hamza Ahmad Aslam (https://hamzaahmadaslam.com)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hamzaahmadaslam/capability-diff.git"
+  },
+  "homepage": "https://github.com/hamzaahmadaslam/capability-diff#readme",
+  "bugs": {
+    "url": "https://github.com/hamzaahmadaslam/capability-diff/issues"
+  },
+  "dependencies": {
+    "php-parser": "3.7.0"
+  }
+}

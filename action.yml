@@ -1,0 +1,47 @@
+name: WordPress capability diff
+description: Report WordPress operations (AJAX, admin-post, REST routes, admin pages) that a pull request opens to more users.
+author: Hamza Ahmad Aslam
+branding:
+  icon: shield
+  color: orange
+
+inputs:
+  base:
+    description: The revision to compare against. Defaults to the pull request's base commit.
+    required: false
+    default: ""
+  path:
+    description: Only this folder of the repository (for a monorepo). Defaults to the whole repository.
+    required: false
+    default: ""
+  fail-on:
+    description: Fail the job on "wider" access (default), on "warning" and worse, or "never".
+    required: false
+    default: wider
+  jev:
+    description: Set to "true" to ask TypeSafe's Jev about the changes the tool cannot rank. Needs the TYPESAFE_API_KEY environment variable.
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Install capability-diff
+      shell: bash
+      run: npm ci --omit=dev --ignore-scripts --prefix "$GITHUB_ACTION_PATH"
+    - name: Compare authorization
+      shell: bash
+      env:
+        CD_BASE: ${{ inputs.base || github.event.pull_request.base.sha }}
+        CD_PATH: ${{ inputs.path }}
+        CD_FAIL_ON: ${{ inputs.fail-on }}
+        CD_JEV: ${{ inputs.jev }}
+      run: |
+        if [ -z "$CD_BASE" ]; then
+          echo "No base revision: run this on pull_request events or set the base input." >&2
+          exit 2
+        fi
+        args=(--git "$CD_BASE" HEAD --fail-on "$CD_FAIL_ON" --markdown "$GITHUB_STEP_SUMMARY")
+        if [ -n "$CD_PATH" ]; then args+=(--path "$CD_PATH"); fi
+        if [ "$CD_JEV" = "true" ]; then args+=(--jev); fi
+        node "$GITHUB_ACTION_PATH/bin/capability-diff.mjs" "${args[@]}"

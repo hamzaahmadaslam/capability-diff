@@ -1,0 +1,54 @@
+capability-diff: examples/before -> examples/after
+13 operations before, 14 after. 8 with wider access, 3 to check, 1 for information.
+
+Wider access (8)
+  admin-post example_reset  [nonce-removed]
+    The operation verified a nonce before (check_admin_referer( 'example_reset' )) and does not now, so another site can make a logged-in user's browser run it (cross-site request forgery).
+    before: includes/class-admin.php:13, includes/class-admin.php:87, includes/class-admin.php:88
+    after:  includes/class-admin.php:14, includes/class-admin.php:85
+  ajax-nopriv example_subscribe  [now-public]
+    "example_subscribe" was only for logged-in users; the change also registers it for visitors who are not logged in, and the handler checks no capability.
+    before: includes/class-admin.php:9, includes/class-admin.php:54
+    after:  includes/class-admin.php:10, includes/class-admin.php:55
+  ajax example_export  [capability-lowered]
+    The operation needed administrator (manage_options) and now lets in contributor (edit_posts).
+    before: includes/class-admin.php:8, includes/class-admin.php:42, includes/class-admin.php:48
+    after:  includes/class-admin.php:8, includes/class-admin.php:43, includes/class-admin.php:49
+  ajax example_save_settings  [check-after-write]
+    The operation checked the capability before its first write; now it writes first (update_option( 'example_settings', $this->clean( $_POST['settings'] ?? array() ) )) and checks afterwards, so the write happens for users who fail the check.
+    before: includes/class-admin.php:6, includes/class-admin.php:23, includes/class-admin.php:24
+    after:  includes/class-admin.php:6, includes/class-admin.php:24, includes/class-admin.php:26
+  ajax example_update_note  [object-dropped]
+    The operation checked edit_post for one object before (current_user_can( 'edit_post', $post_id )); now the check has no object, so any user with edit_posts passes, whoever owns the object.
+    before: includes/class-admin.php:7, includes/class-admin.php:32, includes/class-admin.php:34
+    after:  includes/class-admin.php:7, includes/class-admin.php:33, includes/class-admin.php:35
+  menu example-reports  [capability-lowered]
+    The admin page needed administrator (manage_options) and now lets in contributor (edit_posts).
+    before: includes/class-admin.php:19
+    after:  includes/class-admin.php:20
+  rest GET example/v1/stats  [capability-lowered]
+    The operation needed contributor (edit_posts) and now lets in any logged-in user (is_user_logged_in).
+    before: includes/rest.php:23, includes/rest.php:30
+    after:  includes/rest.php:22
+  rest PATCH,POST,PUT example/v1/settings  [check-removed]
+    The operation checked manage_options before and has no capability check now, so anyone (logged-out visitors too) can run it (the REST route has no permission_callback, which WordPress treats as public).
+    before: includes/rest.php:7, includes/rest.php:37
+    after:  includes/rest.php:7
+
+Check (3)
+  ajax example_clear_log  [capability-changed]
+    The operation checked manage_woocommerce and now checks edit_shop_orders. Whether that lets more users in depends on how the site's roles grant these capabilities.
+    before: includes/class-admin.php:10, includes/class-admin.php:60, includes/class-admin.php:61
+    after:  includes/class-admin.php:11, includes/class-admin.php:61, includes/class-admin.php:62
+  ajax example_dismiss  [condition-changed]
+    The operation checks the same capabilities, but the condition around them changed. Before: ! current_user_can( 'manage_options' ). After: ! current_user_can( 'manage_options' ) && ! get_user_meta( get_current_user_id(), '_example_helper', true ).
+    before: includes/class-admin.php:11, includes/class-admin.php:69, includes/class-admin.php:70
+    after:  includes/class-admin.php:12, includes/class-admin.php:70, includes/class-admin.php:71
+  ajax example_import  [new-unchecked]
+    New action open to any logged-in user that writes (update_option( 'example_imported', $rows )) without a capability check.
+    after:  includes/class-admin.php:13
+
+Information (1)
+  ajax example_legacy_sync  [removed]
+    The ajax operation is no longer registered.
+    before: includes/class-admin.php:12, includes/class-admin.php:78, includes/class-admin.php:79

@@ -1,0 +1,643 @@
+{
+  "findings": [
+    {
+      "code": "nonce-removed",
+      "severity": "wider",
+      "key": "admin-post:example_reset",
+      "kind": "admin-post",
+      "name": "example_reset",
+      "message": "The operation verified a nonce before (check_admin_referer( 'example_reset' )) and does not now, so another site can make a logged-in user's browser run it (cross-site request forgery).",
+      "base": [
+        "includes/class-admin.php:13",
+        "includes/class-admin.php:87",
+        "includes/class-admin.php:88"
+      ],
+      "head": [
+        "includes/class-admin.php:14",
+        "includes/class-admin.php:85"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/class-admin.php:13",
+          "handler": "admin::reset()",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_options' )",
+              "at": "includes/class-admin.php:88",
+              "only_when": "! current_user_can( 'manage_options' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_admin_referer( 'example_reset' )",
+              "at": "includes/class-admin.php:87"
+            }
+          ],
+          "first_write": {
+            "code": "delete_option( 'example_settings' )",
+            "at": "includes/class-admin.php:91"
+          }
+        },
+        "after": {
+          "registered": "includes/class-admin.php:14",
+          "handler": "admin::reset()",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_options' )",
+              "at": "includes/class-admin.php:85",
+              "only_when": "! current_user_can( 'manage_options' )"
+            }
+          ],
+          "nonces": [],
+          "first_write": {
+            "code": "delete_option( 'example_settings' )",
+            "at": "includes/class-admin.php:88"
+          }
+        }
+      }
+    },
+    {
+      "code": "now-public",
+      "severity": "wider",
+      "key": "ajax-nopriv:example_subscribe",
+      "kind": "ajax-nopriv",
+      "name": "example_subscribe",
+      "message": "\"example_subscribe\" was only for logged-in users; the change also registers it for visitors who are not logged in, and the handler checks no capability.",
+      "base": [
+        "includes/class-admin.php:9",
+        "includes/class-admin.php:54"
+      ],
+      "head": [
+        "includes/class-admin.php:10",
+        "includes/class-admin.php:55"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/class-admin.php:9",
+          "handler": "admin::subscribe()",
+          "rank": 0,
+          "checks": [],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_subscribe' )",
+              "at": "includes/class-admin.php:54"
+            }
+          ],
+          "first_write": {
+            "code": "add_user_meta( get_current_user_id(), '_example_subscribed', 1, true )",
+            "at": "includes/class-admin.php:55"
+          }
+        },
+        "after": {
+          "registered": "includes/class-admin.php:10",
+          "handler": "admin::subscribe()",
+          "rank": -1,
+          "checks": [],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_subscribe' )",
+              "at": "includes/class-admin.php:55"
+            }
+          ],
+          "first_write": {
+            "code": "add_user_meta( get_current_user_id(), '_example_subscribed', 1, true )",
+            "at": "includes/class-admin.php:56"
+          }
+        }
+      }
+    },
+    {
+      "code": "capability-lowered",
+      "severity": "wider",
+      "key": "ajax:example_export",
+      "kind": "ajax",
+      "name": "example_export",
+      "message": "The operation needed administrator (manage_options) and now lets in contributor (edit_posts).",
+      "base": [
+        "includes/class-admin.php:8",
+        "includes/class-admin.php:42",
+        "includes/class-admin.php:48"
+      ],
+      "head": [
+        "includes/class-admin.php:8",
+        "includes/class-admin.php:43",
+        "includes/class-admin.php:49"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/class-admin.php:8",
+          "handler": "admin::export()",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_options' )",
+              "at": "includes/class-admin.php:48",
+              "only_when": "! current_user_can( 'manage_options' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_export' )",
+              "at": "includes/class-admin.php:42"
+            }
+          ],
+          "first_write": null
+        },
+        "after": {
+          "registered": "includes/class-admin.php:8",
+          "handler": "admin::export()",
+          "rank": 1,
+          "checks": [
+            {
+              "code": "current_user_can( 'edit_posts' )",
+              "at": "includes/class-admin.php:49",
+              "only_when": "! current_user_can( 'edit_posts' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_export' )",
+              "at": "includes/class-admin.php:43"
+            }
+          ],
+          "first_write": null
+        }
+      }
+    },
+    {
+      "code": "check-after-write",
+      "severity": "wider",
+      "key": "ajax:example_save_settings",
+      "kind": "ajax",
+      "name": "example_save_settings",
+      "message": "The operation checked the capability before its first write; now it writes first (update_option( 'example_settings', $this->clean( $_POST['settings'] ?? array() ) )) and checks afterwards, so the write happens for users who fail the check.",
+      "base": [
+        "includes/class-admin.php:6",
+        "includes/class-admin.php:23",
+        "includes/class-admin.php:24"
+      ],
+      "head": [
+        "includes/class-admin.php:6",
+        "includes/class-admin.php:24",
+        "includes/class-admin.php:26"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/class-admin.php:6",
+          "handler": "admin::save_settings()",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_options' )",
+              "at": "includes/class-admin.php:24",
+              "only_when": "! current_user_can( 'manage_options' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_settings' )",
+              "at": "includes/class-admin.php:23"
+            }
+          ],
+          "first_write": {
+            "code": "update_option( 'example_settings', $this->clean( $_POST['settings'] ?? array() ) )",
+            "at": "includes/class-admin.php:27"
+          }
+        },
+        "after": {
+          "registered": "includes/class-admin.php:6",
+          "handler": "admin::save_settings()",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_options' )",
+              "at": "includes/class-admin.php:26",
+              "only_when": "! current_user_can( 'manage_options' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_settings' )",
+              "at": "includes/class-admin.php:24"
+            }
+          ],
+          "first_write": {
+            "code": "update_option( 'example_settings', $this->clean( $_POST['settings'] ?? array() ) )",
+            "at": "includes/class-admin.php:25"
+          }
+        }
+      }
+    },
+    {
+      "code": "object-dropped",
+      "severity": "wider",
+      "key": "ajax:example_update_note",
+      "kind": "ajax",
+      "name": "example_update_note",
+      "message": "The operation checked edit_post for one object before (current_user_can( 'edit_post', $post_id )); now the check has no object, so any user with edit_posts passes, whoever owns the object.",
+      "base": [
+        "includes/class-admin.php:7",
+        "includes/class-admin.php:32",
+        "includes/class-admin.php:34"
+      ],
+      "head": [
+        "includes/class-admin.php:7",
+        "includes/class-admin.php:33",
+        "includes/class-admin.php:35"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/class-admin.php:7",
+          "handler": "admin::update_note()",
+          "rank": 1,
+          "checks": [
+            {
+              "code": "current_user_can( 'edit_post', $post_id )",
+              "at": "includes/class-admin.php:34",
+              "only_when": "! current_user_can( 'edit_post', $post_id )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_note' )",
+              "at": "includes/class-admin.php:32"
+            }
+          ],
+          "first_write": {
+            "code": "update_post_meta( $post_id, '_example_note', sanitize_text_field( wp_unslash( $_POST['note'] ?? '' ) ) )",
+            "at": "includes/class-admin.php:37"
+          }
+        },
+        "after": {
+          "registered": "includes/class-admin.php:7",
+          "handler": "admin::update_note()",
+          "rank": 1,
+          "checks": [
+            {
+              "code": "current_user_can( 'edit_posts' )",
+              "at": "includes/class-admin.php:35",
+              "only_when": "! current_user_can( 'edit_posts' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_note' )",
+              "at": "includes/class-admin.php:33"
+            }
+          ],
+          "first_write": {
+            "code": "update_post_meta( $post_id, '_example_note', sanitize_text_field( wp_unslash( $_POST['note'] ?? '' ) ) )",
+            "at": "includes/class-admin.php:38"
+          }
+        }
+      }
+    },
+    {
+      "code": "capability-lowered",
+      "severity": "wider",
+      "key": "menu:example-reports",
+      "kind": "menu",
+      "name": "example-reports",
+      "message": "The admin page needed administrator (manage_options) and now lets in contributor (edit_posts).",
+      "base": [
+        "includes/class-admin.php:19"
+      ],
+      "head": [
+        "includes/class-admin.php:20"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/class-admin.php:19",
+          "handler": "add_submenu_page",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "add_submenu_page( 'tools.php', 'Example Reports', 'Example Reports', 'manage_options', 'example-reports', array( $this, 'page' ) );",
+              "at": "includes/class-admin.php:19",
+              "only_when": ""
+            }
+          ],
+          "nonces": [],
+          "first_write": null
+        },
+        "after": {
+          "registered": "includes/class-admin.php:20",
+          "handler": "add_submenu_page",
+          "rank": 1,
+          "checks": [
+            {
+              "code": "add_submenu_page( 'tools.php', 'Example Reports', 'Example Reports', 'edit_posts', 'example-reports', array( $this, 'page' ) );",
+              "at": "includes/class-admin.php:20",
+              "only_when": ""
+            }
+          ],
+          "nonces": [],
+          "first_write": null
+        }
+      }
+    },
+    {
+      "code": "capability-lowered",
+      "severity": "wider",
+      "key": "rest:GET example/v1/stats",
+      "kind": "rest",
+      "name": "GET example/v1/stats",
+      "message": "The operation needed contributor (edit_posts) and now lets in any logged-in user (is_user_logged_in).",
+      "base": [
+        "includes/rest.php:23",
+        "includes/rest.php:30"
+      ],
+      "head": [
+        "includes/rest.php:22"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/rest.php:23",
+          "handler": "get_stats()",
+          "permission": "function at includes/rest.php:29",
+          "rank": 1,
+          "checks": [
+            {
+              "code": "current_user_can( 'edit_posts' )",
+              "at": "includes/rest.php:30",
+              "only_when": "return current_user_can( 'edit_posts' );"
+            }
+          ],
+          "nonces": [],
+          "first_write": null
+        },
+        "after": {
+          "registered": "includes/rest.php:22",
+          "handler": "get_stats()",
+          "permission": "is_user_logged_in()",
+          "rank": 0,
+          "checks": [
+            {
+              "code": "'permission_callback' => 'is_user_logged_in'",
+              "at": "includes/rest.php:22",
+              "only_when": ""
+            }
+          ],
+          "nonces": [],
+          "first_write": null
+        }
+      }
+    },
+    {
+      "code": "check-removed",
+      "severity": "wider",
+      "key": "rest:PATCH,POST,PUT example/v1/settings",
+      "kind": "rest",
+      "name": "PATCH,POST,PUT example/v1/settings",
+      "message": "The operation checked manage_options before and has no capability check now, so anyone (logged-out visitors too) can run it (the REST route has no permission_callback, which WordPress treats as public).",
+      "base": [
+        "includes/rest.php:7",
+        "includes/rest.php:37"
+      ],
+      "head": [
+        "includes/rest.php:7"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/rest.php:7",
+          "handler": "save_settings()",
+          "permission": "can_manage()",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_options' )",
+              "at": "includes/rest.php:37",
+              "only_when": "return current_user_can( 'manage_options' );"
+            }
+          ],
+          "nonces": [],
+          "first_write": {
+            "code": "update_option( 'example_settings', $request->get_param( 'settings' ) )",
+            "at": "includes/rest.php:45"
+          }
+        },
+        "after": {
+          "registered": "includes/rest.php:7",
+          "handler": "save_settings()",
+          "permission": "(none)",
+          "rank": -1,
+          "checks": [],
+          "nonces": [],
+          "first_write": {
+            "code": "update_option( 'example_settings', $request->get_param( 'settings' ) )",
+            "at": "includes/rest.php:42"
+          }
+        }
+      }
+    },
+    {
+      "code": "capability-changed",
+      "severity": "warning",
+      "key": "ajax:example_clear_log",
+      "kind": "ajax",
+      "name": "example_clear_log",
+      "message": "The operation checked manage_woocommerce and now checks edit_shop_orders. Whether that lets more users in depends on how the site's roles grant these capabilities.",
+      "base": [
+        "includes/class-admin.php:10",
+        "includes/class-admin.php:60",
+        "includes/class-admin.php:61"
+      ],
+      "head": [
+        "includes/class-admin.php:11",
+        "includes/class-admin.php:61",
+        "includes/class-admin.php:62"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/class-admin.php:10",
+          "handler": "admin::clear_log()",
+          "rank": null,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_woocommerce' )",
+              "at": "includes/class-admin.php:61",
+              "only_when": "! current_user_can( 'manage_woocommerce' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_clear_log' )",
+              "at": "includes/class-admin.php:60"
+            }
+          ],
+          "first_write": {
+            "code": "delete_option( 'example_log' )",
+            "at": "includes/class-admin.php:64"
+          }
+        },
+        "after": {
+          "registered": "includes/class-admin.php:11",
+          "handler": "admin::clear_log()",
+          "rank": null,
+          "checks": [
+            {
+              "code": "current_user_can( 'edit_shop_orders' )",
+              "at": "includes/class-admin.php:62",
+              "only_when": "! current_user_can( 'edit_shop_orders' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_clear_log' )",
+              "at": "includes/class-admin.php:61"
+            }
+          ],
+          "first_write": {
+            "code": "delete_option( 'example_log' )",
+            "at": "includes/class-admin.php:65"
+          }
+        }
+      }
+    },
+    {
+      "code": "condition-changed",
+      "severity": "warning",
+      "key": "ajax:example_dismiss",
+      "kind": "ajax",
+      "name": "example_dismiss",
+      "message": "The operation checks the same capabilities, but the condition around them changed. Before: ! current_user_can( 'manage_options' ). After: ! current_user_can( 'manage_options' ) && ! get_user_meta( get_current_user_id(), '_example_helper', true ).",
+      "base": [
+        "includes/class-admin.php:11",
+        "includes/class-admin.php:69",
+        "includes/class-admin.php:70"
+      ],
+      "head": [
+        "includes/class-admin.php:12",
+        "includes/class-admin.php:70",
+        "includes/class-admin.php:71"
+      ],
+      "evidence": {
+        "before": {
+          "registered": "includes/class-admin.php:11",
+          "handler": "admin::dismiss()",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_options' )",
+              "at": "includes/class-admin.php:70",
+              "only_when": "! current_user_can( 'manage_options' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_dismiss' )",
+              "at": "includes/class-admin.php:69"
+            }
+          ],
+          "first_write": {
+            "code": "update_option( 'example_notice_dismissed', 1 )",
+            "at": "includes/class-admin.php:73"
+          }
+        },
+        "after": {
+          "registered": "includes/class-admin.php:12",
+          "handler": "admin::dismiss()",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_options' )",
+              "at": "includes/class-admin.php:71",
+              "only_when": "! current_user_can( 'manage_options' ) && ! get_user_meta( get_current_user_id(), '_example_helper', true )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_dismiss' )",
+              "at": "includes/class-admin.php:70"
+            }
+          ],
+          "first_write": {
+            "code": "update_option( 'example_notice_dismissed', 1 )",
+            "at": "includes/class-admin.php:74"
+          }
+        }
+      }
+    },
+    {
+      "code": "new-unchecked",
+      "severity": "warning",
+      "key": "ajax:example_import",
+      "kind": "ajax",
+      "name": "example_import",
+      "message": "New action open to any logged-in user that writes (update_option( 'example_imported', $rows )) without a capability check.",
+      "base": [],
+      "head": [
+        "includes/class-admin.php:13"
+      ],
+      "evidence": {
+        "before": null,
+        "after": {
+          "registered": "includes/class-admin.php:13",
+          "handler": "admin::import()",
+          "rank": 0,
+          "checks": [],
+          "nonces": [],
+          "first_write": {
+            "code": "update_option( 'example_imported', $rows )",
+            "at": "includes/class-admin.php:80"
+          }
+        }
+      }
+    },
+    {
+      "code": "removed",
+      "severity": "info",
+      "key": "ajax:example_legacy_sync",
+      "kind": "ajax",
+      "name": "example_legacy_sync",
+      "message": "The ajax operation is no longer registered.",
+      "base": [
+        "includes/class-admin.php:12",
+        "includes/class-admin.php:78",
+        "includes/class-admin.php:79"
+      ],
+      "head": [],
+      "evidence": {
+        "before": {
+          "registered": "includes/class-admin.php:12",
+          "handler": "admin::legacy_sync()",
+          "rank": 4,
+          "checks": [
+            {
+              "code": "current_user_can( 'manage_options' )",
+              "at": "includes/class-admin.php:79",
+              "only_when": "! current_user_can( 'manage_options' )"
+            }
+          ],
+          "nonces": [
+            {
+              "code": "check_ajax_referer( 'example_legacy_sync' )",
+              "at": "includes/class-admin.php:78"
+            }
+          ],
+          "first_write": {
+            "code": "update_option( 'example_synced', time() )",
+            "at": "includes/class-admin.php:82"
+          }
+        },
+        "after": null
+      }
+    }
+  ],
+  "baseLabel": "examples/before",
+  "headLabel": "examples/after",
+  "operations": {
+    "base": 13,
+    "head": 14
+  },
+  "unresolved": [],
+  "unparsed": [],
+  "summary": {
+    "wider": 8,
+    "warning": 3,
+    "info": 1
+  },
+  "usage": null
+}
